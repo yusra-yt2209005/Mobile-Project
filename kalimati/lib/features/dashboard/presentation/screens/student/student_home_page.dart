@@ -188,7 +188,8 @@ class _StudentHomePageState extends State<StudentHomePage> {
                                         icon: const Icon(Icons.open_in_new),
                                         label: const Text('View Details'),
                                         onPressed: () => context.pushNamed(
-                                          Routes.packageDetailScreen,
+                                          Routes.gameSelectionScreen,
+                                          extra: p.title,
                                         ),
                                       ),
                                     ),

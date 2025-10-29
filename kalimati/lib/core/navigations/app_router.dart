@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:kalimati/features/dashboard/presentation/screens/student/package_detail_screen.dart';
+import 'package:kalimati/features/dashboard/presentation/screens/student/game_selection_screen.dart';
 
 // Screens
 import '../../features/dashboard/presentation/screens/home/home_screen.dart';
@@ -42,11 +42,15 @@ class AppRouter {
         path: '/student',
         builder: (context, state) => const StudentHomePage(),
       ),
-      // package details screen- shows details of selected learning package
+
+      // games selection screen- shows games for selected learning package
       GoRoute(
-        name: Routes.packageDetailScreen,
-        path: 'student/packages/details',
-        builder: (context, state) => const PackageDetailScreen(),
+        name: Routes.gameSelectionScreen,
+        path: '/student/package/games',
+        builder: (context, state) {
+          final title = (state.extra as String?) ?? '';
+          return GameSelectionScreen(packageTitle: title);
+        },
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
@@ -61,5 +65,5 @@ abstract class Routes {
   static const teacherLogin = 'teacher-login';
   static const teacherDashboard = 'teacher-dashboard';
   static const studentHomePage = 'student-home-page';
-  static const packageDetailScreen = 'package-detail-screen';
+  static const gameSelectionScreen = 'game-selection-screen';
 }
