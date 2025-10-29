@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kalimati/features/dashboard/presentation/screens/student/package_detail_screen.dart';
 
 // Screens
 import '../../features/dashboard/presentation/screens/home/home_screen.dart';
@@ -41,6 +42,12 @@ class AppRouter {
         path: '/student',
         builder: (context, state) => const StudentHomePage(),
       ),
+      // package details screen- shows details of selected learning package
+      GoRoute(
+        name: Routes.packageDetailScreen,
+        path: 'student/packages/details',
+        builder: (context, state) => const PackageDetailScreen(),
+      ),
     ],
     errorBuilder: (context, state) => Scaffold(
       appBar: AppBar(title: const Text('Page not found')),
@@ -54,4 +61,5 @@ abstract class Routes {
   static const teacherLogin = 'teacher-login';
   static const teacherDashboard = 'teacher-dashboard';
   static const studentHomePage = 'student-home-page';
+  static const packageDetailScreen = 'package-detail-screen';
 }
