@@ -1,9 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kalimati/core/navigations/app_router.dart';
+import 'package:kalimati/features/dashboard/domain/entities/user.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,7 +15,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
@@ -22,7 +23,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 229, 189, 236),
-      //appBar: AppBar(title: const Center(child: Text('Teacher Login'))),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Form(
@@ -30,37 +30,35 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // 🔹 Title Card
-              Center(
-                child: Text(
-                  'Teacher\nLogin',
-                  style: GoogleFonts.bubblegumSans(
-                    fontSize: 50,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 1.2,
-                  ),
+              Text(
+                'Teacher\nLogin',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.bubblegumSans(
+                  fontSize: 50,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 1.2,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
 
-              // Username
+              // Email field
               TextFormField(
-                controller: _usernameController,
+                controller: _emailController,
                 decoration: const InputDecoration(
-                  labelText: 'Username',
+                  labelText: 'Email',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Enter username';
+                    return 'Enter email';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
 
-              // Password
+              // Password field
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
@@ -75,25 +73,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 30),
 
-              // Login Button
+              // Login button
               SizedBox(
                 width: 200,
+                height: 50,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(255, 211, 146, 226),
+                    backgroundColor: const Color.fromARGB(255, 211, 146, 226),
                   ),
                   onPressed: _isLoading ? null : _login,
                   child: _isLoading
-                      ? const SizedBox(
-                          height: 50,
-                          width: 200,
-                          child: CircularProgressIndicator(
-                            color: Color.fromARGB(255, 211, 146, 226),
-                            strokeWidth: 2,
-                          ),
-                        )
+                      ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
                           'Login',
                           style: TextStyle(
@@ -110,64 +102,60 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Login logic – reads users.json directly
+  /// Logs in only if email & password exist in users.json
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
-    final username = _usernameController.text.trim();
-    final password = _passwordController.text;
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
     try {
-      // Read file from assets
-      final String data = await rootBundle.loadString('assets/data/users.json');
-      final List<dynamic> users = json.decode(data);
+      // Load users from assets
+      final String data = await rootBundle.loadString('assets/users.json');
+      final List<dynamic> jsonUsers = json.decode(data);
 
-      // Check if user exists
-      bool found = users.any((user) {
-        return user['username'] == username && user['password'] == password;
-      });
+      // Convert JSON list → List<User>
+      final users = jsonUsers.map((e) => User.fromJson(e)).toList();
 
-      if (found && mounted) {
-        // Go to the teacher_packages_screen
-        context.goNamed(Routes.teacherDashboard);
+      // Try to find a matching user
+      final matchingUser = users.firstWhere(
+        (user) => user.email == email && user.password == password,
+        orElse: () => User(
+          id: '',
+          firstName: '',
+          lastName: '',
+          email: '',
+          password: '',
+          photoUrl: '',
+          role: '',
+        ),
+      );
+
+      if (matchingUser.email.isNotEmpty) {
+        // Navigate to the teacher profile screen
+        context.goNamed(Routes.teacherProfile, extra: matchingUser);
       } else {
-        // Show error
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Wrong username or password')),
-          );
-        }
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Wrong email or password')),
+        );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Error loading users')));
-      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Error loading users file')));
+    } finally {
+      // Always stop loading
+      setState(() => _isLoading = false);
     }
-
-    setState(() => _isLoading = false);
   }
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
-  }
-}
-
-// Placeholder screen
-class TeacherPackageListScreen extends StatelessWidget {
-  const TeacherPackageListScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('My Packages')),
-      body: const Center(child: Text('Your packages will appear here')),
-    );
   }
 }

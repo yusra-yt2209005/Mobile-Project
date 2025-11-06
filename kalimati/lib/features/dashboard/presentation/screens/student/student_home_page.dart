@@ -1,8 +1,8 @@
+import 'package:provider/provider.dart';
+import 'package:kalimati/core/data/database/app_database.dart'; // Floor @Database (with DAOs)
+import 'package:kalimati/features/dashboard/domain/entities/learning_package.dart';
 // shows list of all learning packages for all students
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kalimati/core/navigations/app_router.dart';
 
@@ -26,13 +26,10 @@ class _StudentHomePageState extends State<StudentHomePage> {
   }
 
   Future<List<LearningPackage>> _loadPackages() async {
-    // Read the JSON array from assets
-    final jsonStr = await rootBundle.loadString('assets/packages.json');
-    final list = json.decode(jsonStr) as List<dynamic>;
-
-    final pkgs = list
-        .map((e) => LearningPackage.fromJson(Map<String, dynamic>.from(e)))
-        .toList();
+    // Read from SQLite using Floor (NOT from JSON)
+    final db = context.read<AppDatabase>(); // Provider<AppDatabase> at app root
+    final pkgs = await db.packageDao
+        .getAllPackages(); // Future<List<LearningPackage>>
 
     // Cache for search
     _all = pkgs;
@@ -77,10 +74,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
-          // back button---------------------------
-          onPressed: () {
-            context.goNamed(Routes.home); // go back to home screen
-          },
+          onPressed: () => context.goNamed(Routes.home),
           icon: const Icon(Icons.arrow_back),
         ),
       ),
@@ -126,17 +120,12 @@ class _StudentHomePageState extends State<StudentHomePage> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              // child: InkWell(
-                              //   borderRadius: BorderRadius.circular(16),
-                              //   onTap: () => context.pushNamed(
-                              //     Routes.packageDetailScreen,
-                              //   ),
                               child: Padding(
                                 padding: const EdgeInsets.all(16),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // --- Top row of card: Icon + Title ------------------------------------------------------------------
+                                    // --- Top row of card: Icon + Title ---
                                     Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.center,
@@ -156,7 +145,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                                     ),
                                     const SizedBox(height: 10),
 
-                                    // --- Info ----------------------------------------------------------------------
+                                    // --- Info chips ---
                                     Wrap(
                                       spacing: 8,
                                       children: [
@@ -168,7 +157,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
 
                                     const SizedBox(height: 10),
 
-                                    // --- Description --------------------------------------------------------------------------
+                                    // --- Description ---
                                     Text(
                                       p.description,
                                       style: TextStyle(
@@ -181,7 +170,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
 
                                     const SizedBox(height: 12),
 
-                                    // --- Button to view details -------------------------------------------------------------------
+                                    // --- Button: View Details -> Game Selection ---
                                     Align(
                                       alignment: Alignment.centerRight,
                                       child: FilledButton.icon(
@@ -189,14 +178,14 @@ class _StudentHomePageState extends State<StudentHomePage> {
                                         label: const Text('View Details'),
                                         onPressed: () => context.pushNamed(
                                           Routes.gameSelectionScreen,
-                                          extra: p.title,
+                                          extra: p
+                                              .title, // or pass whole entity via extra: p
                                         ),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              // ),
                             );
                           },
                         ),
@@ -222,46 +211,7 @@ class _PackageAvatar extends StatelessWidget {
     return CircleAvatar(
       backgroundImage: NetworkImage(iconUrl!),
       onBackgroundImageError: (_, __) {},
-      child: const SizedBox.shrink(), // keeps size even while loading
-    );
-  }
-}
-
-class LearningPackage {
-  final String packageId;
-  final String author;
-  final String title;
-  final String description;
-  final String language;
-  final String level;
-  final String category;
-  final String? iconUrl;
-  final String lastUpdatedDate;
-
-  LearningPackage({
-    // constructor
-    required this.packageId,
-    required this.author,
-    required this.title,
-    required this.description,
-    required this.language,
-    required this.level,
-    required this.category,
-    this.iconUrl,
-    required this.lastUpdatedDate,
-  });
-
-  factory LearningPackage.fromJson(Map<String, dynamic> json) {
-    return LearningPackage(
-      packageId: json['packageId']?.toString() ?? '',
-      author: json['author'] ?? '',
-      title: json['title'] ?? '(no title)',
-      description: json['description'] ?? '',
-      language: json['language'] ?? '',
-      level: json['level'] ?? '',
-      category: json['category'] ?? '',
-      iconUrl: json['iconUrl'],
-      lastUpdatedDate: json['lastUpdatedDate'] ?? '',
+      child: const SizedBox.shrink(),
     );
   }
 }

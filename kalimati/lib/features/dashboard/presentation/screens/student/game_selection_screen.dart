@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kalimati/features/dashboard/presentation/screens/student/flashcards_screen.dart';
+import 'package:kalimati/features/dashboard/presentation/screens/student/match_word_definition_screen.dart';
+import 'package:kalimati/features/dashboard/presentation/screens/student/unscramble_words_screen.dart';
 
 class GameSelectionScreen extends StatefulWidget {
   final String packageTitle;
@@ -143,7 +145,14 @@ class _GameSelectionScreenState extends State<GameSelectionScreen> {
                     icon: Icons.text_fields,
                     color: const Color.fromARGB(255, 189, 161, 237),
                     onTap: () {
-                      // TODO: Add navigation later
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UnscrambleWordsScreen(
+                            packageTitle: widget.packageTitle,
+                          ),
+                        ),
+                      );
                     },
                   ),
 
@@ -153,7 +162,14 @@ class _GameSelectionScreenState extends State<GameSelectionScreen> {
                     icon: Icons.compare_arrows,
                     color: const Color.fromARGB(255, 189, 161, 237),
                     onTap: () {
-                      // TODO: Add navigation later
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MatchWordDefinitionScreen(
+                            packageTitle: widget.packageTitle,
+                          ),
+                        ),
+                      );
                     },
                   ),
                 ],
