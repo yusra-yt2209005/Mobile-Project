@@ -5,6 +5,7 @@ import 'package:kalimati/features/dashboard/presentation/screens/student/game_se
 import 'package:kalimati/features/dashboard/presentation/screens/student/match_word_definition_screen.dart';
 import 'package:kalimati/features/dashboard/presentation/screens/student/unscramble_words_screen.dart';
 import 'package:kalimati/features/dashboard/domain/entities/user.dart';
+import 'package:kalimati/features/dashboard/presentation/screens/teacher/editor_screen.dart';
 import 'package:kalimati/features/dashboard/presentation/screens/teacher/teacher_profile_screen.dart';
 
 // Screens
@@ -40,6 +41,17 @@ class AppRouter {
           // Receive the User object via extra
           final user = state.extra as User;
           return TeacherProfileScreen(user: user);
+        },
+      ),
+      GoRoute(
+        name: Routes.teacherEditor,
+        path: '/teacher/editor',
+        builder: (context, state) {
+          final args = state.extra as Map<String, dynamic>;
+          return PackageEditorScreen(
+            user: args['user'],
+            existingPackage: args['package'],
+          );
         },
       ),
 
@@ -97,6 +109,7 @@ abstract class Routes {
   static const home = 'home';
   static const teacherLogin = 'teacher-login';
   static const teacherProfile = 'teacher-profile';
+  static const teacherEditor = 'package-editor';
 
   static const studentHomePage = 'student-home-page';
   static const gameSelectionScreen = 'game-selection-screen';

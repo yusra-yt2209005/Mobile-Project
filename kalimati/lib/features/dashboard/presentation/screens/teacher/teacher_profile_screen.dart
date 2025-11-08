@@ -36,25 +36,46 @@ class _TeacherProfileScreenState extends State<TeacherProfileScreen> {
     });
   }
 
-  void _editPackage(int index) {
+  /* void _editPackage(int index) {
     final pkg = _packages[index];
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('Edit "${pkg['title']}"')));
-  }
+  } */
 
   void _deletePackage(int index) {
     setState(() {
       _packages.removeAt(index);
     });
   }
+  
+  void _editPackage(int index) {
+    final pkg = _packages[index];
+    context.pushNamed(
+      'package-editor',
+      extra: {
+        'user': widget.user,
+        'package': pkg,
+      },
+    );
+  }
 
   void _addPackage() {
+    context.pushNamed(
+      'package-editor',
+      extra: {
+        'user': widget.user,
+        'package': null, // Indicates new package
+      },
+    );
+  }
+
+/*   void _addPackage() {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Add a new package')));
   }
-
+ */
   @override
   Widget build(BuildContext context) {
     return Scaffold(

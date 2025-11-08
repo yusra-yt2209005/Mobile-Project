@@ -1,19 +1,20 @@
-import 'package:provider/provider.dart';
-import 'package:kalimati/core/data/database/app_database.dart'; // Floor @Database (with DAOs)
-import 'package:kalimati/features/dashboard/domain/entities/learning_package.dart';
-// shows list of all learning packages for all students
+// lib/features/dashboard/presentation/screens/student/student_home_page.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:kalimati/core/navigations/app_router.dart';
 
-class StudentHomePage extends StatefulWidget {
+import 'package:kalimati/core/navigations/app_router.dart';
+import 'package:kalimati/core/data/database/database_provider.dart';
+import 'package:kalimati/features/dashboard/domain/entities/learning_package.dart';
+
+class StudentHomePage extends ConsumerStatefulWidget {
   const StudentHomePage({super.key});
 
   @override
-  State<StatefulWidget> createState() => _StudentHomePageState();
+  ConsumerState<StudentHomePage> createState() => _StudentHomePageState();
 }
 
-class _StudentHomePageState extends State<StudentHomePage> {
+class _StudentHomePageState extends ConsumerState<StudentHomePage> {
   late Future<List<LearningPackage>> _future;
   String _query = '';
   List<LearningPackage> _all = [];
@@ -26,12 +27,10 @@ class _StudentHomePageState extends State<StudentHomePage> {
   }
 
   Future<List<LearningPackage>> _loadPackages() async {
-    // Read from SQLite using Floor (NOT from JSON)
-    final db = context.read<AppDatabase>(); // Provider<AppDatabase> at app root
-    final pkgs = await db.packageDao
-        .getAllPackages(); // Future<List<LearningPackage>>
+    // 🔹 Read the Floor DB via Riverpod, not provider/context
+    final db = await ref.read(databaseProvider.future);
+    final pkgs = await db.packageDao.getAllPackages();
 
-    // Cache for search
     _all = pkgs;
     _filtered = pkgs;
     return pkgs;
@@ -90,7 +89,6 @@ class _StudentHomePageState extends State<StudentHomePage> {
             );
           }
 
-          // search + list
           return Column(
             children: [
               Padding(
@@ -125,7 +123,6 @@ class _StudentHomePageState extends State<StudentHomePage> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // --- Top row of card: Icon + Title ---
                                     Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.center,
@@ -144,8 +141,6 @@ class _StudentHomePageState extends State<StudentHomePage> {
                                       ],
                                     ),
                                     const SizedBox(height: 10),
-
-                                    // --- Info chips ---
                                     Wrap(
                                       spacing: 8,
                                       children: [
@@ -154,10 +149,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                                         Chip(label: Text(p.language)),
                                       ],
                                     ),
-
                                     const SizedBox(height: 10),
-
-                                    // --- Description ---
                                     Text(
                                       p.description,
                                       style: TextStyle(
@@ -167,10 +159,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
-
                                     const SizedBox(height: 12),
-
-                                    // --- Button: View Details -> Game Selection ---
                                     Align(
                                       alignment: Alignment.centerRight,
                                       child: FilledButton.icon(
@@ -178,8 +167,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                                         label: const Text('View Details'),
                                         onPressed: () => context.pushNamed(
                                           Routes.gameSelectionScreen,
-                                          extra: p
-                                              .title, // or pass whole entity via extra: p
+                                          extra: p.title,
                                         ),
                                       ),
                                     ),
